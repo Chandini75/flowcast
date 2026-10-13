@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlowCast: hospital flow command center</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eceff3;--card:#ffffff;--ink:#14202b;--ink2:#55616d;--line:#dce1e7;--accent:#0b6a8a;--accentBg:#e1f0f5;--red:#b42a2a;--redBg:#fbe9e8;--amber:#8f5a00;--amberBg:#fcf0d3;--green:#0a6b45;--greenBg:#e0f3ea;--bedOcc:#7f93a8;--bedLine:#aab6c2;--base:#9aa6b2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f151b;--card:#18212a;--ink:#e8edf2;--ink2:#9aa7b4;--line:#2a3541;--accent:#4db6d6;--accentBg:#12303b;--red:#ff8a85;--redBg:#3a1d1d;--amber:#f0b955;--amberBg:#38290d;--green:#52c797;--greenBg:#12301f;--bedOcc:#5f7388;--bedLine:#46586a;--base:#6d7b89}}
+:root[data-theme="dark"]{--bg:#0f151b;--card:#18212a;--ink:#e8edf2;--ink2:#9aa7b4;--line:#2a3541;--accent:#4db6d6;--accentBg:#12303b;--red:#ff8a85;--redBg:#3a1d1d;--amber:#f0b955;--amberBg:#38290d;--green:#52c797;--greenBg:#12301f;--bedOcc:#5f7388;--bedLine:#46586a;--base:#6d7b89}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:1000px;margin:0 auto;padding:0 12px 28px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 12px}
+.hin{max-width:1000px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.brand span{color:var(--ink2);font-size:12px}
+.clock{font-size:20px;font-weight:600}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px;min-height:40px;cursor:pointer}
+button:hover{border-color:var(--base)}
+button:active{transform:scale(.98)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accentBg);border-color:var(--accent);color:var(--accent)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:500}
+button.alert{border-color:var(--red);color:var(--red)}
+button.sm{min-height:36px;padding:4px 10px;font-size:13px}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+nav a{flex:none;color:var(--ink2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;background:var(--card)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:12px}
+h2{font-size:15px;font-weight:600;margin:0 0 2px}
+.sub{color:var(--ink2);font-size:12px;margin:0 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi p{margin:0}
+.kl{font-size:12px;color:var(--ink2)}
+.kv{font-size:26px;font-weight:600;line-height:1.15;margin:2px 0}
+.ks{font-size:12px;color:var(--ink2)}
+.alerts{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.al{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:8px;font-size:13px}
+.al i{font-style:normal;font-weight:600;flex:none;width:16px;text-align:center}
+.al.red{background:var(--redBg);color:var(--red)}
+.al.amber{background:var(--amberBg);color:var(--amber)}
+.al.green{background:var(--greenBg);color:var(--green)}
+svg{display:block;width:100%;height:auto}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink2);margin:0 0 6px}
+.leg span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.press{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pc{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.pc .n{font-weight:500;font-size:13px}
+.pc .s{font-size:12px;color:var(--ink2)}
+.pc .bar{height:5px;border-radius:3px;background:var(--line);margin:6px 0 4px;overflow:hidden}
+.pc .bar div{height:100%}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px}
+.pill.red{background:var(--redBg);color:var(--red)}.pill.amber{background:var(--amberBg);color:var(--amber)}.pill.green{background:var(--greenBg);color:var(--green)}
+.ward{padding:8px 0;border-top:1px solid var(--line)}
+.ward:first-of-type{border-top:0}
+.wh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.wh b{font-weight:500}
+.wh span{font-size:12px;color:var(--ink2)}
+.beds{display:flex;flex-wrap:wrap;gap:3px}
+.bed{width:15px;height:15px;border-radius:3px;font-size:10px;line-height:13px;text-align:center;font-weight:600}
+.bed.free{border:1.5px solid var(--green);background:transparent}
+.bed.occ{background:var(--bedOcc);border:1.5px solid var(--bedOcc)}
+.bed.fit{background:var(--amberBg);border:1.5px solid var(--amber);color:var(--amber)}
+.bed.clean{border:1.5px dashed var(--bedLine);background:transparent}
+.bed.out{box-shadow:inset 0 0 0 2px var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-weight:500;color:var(--ink2);text-align:left;font-size:12px;padding:4px 6px 6px 0}
+td{padding:6px 6px 6px 0;border-top:1px solid var(--line)}
+td.r,th.r{text-align:right}
+.rec{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px}
+.rec b{font-weight:600;font-size:14px}
+.rec p{margin:4px 0 0;font-size:13px;color:var(--ink2)}
+.rec p.im{color:var(--green)}
+.rec .btns{display:flex;gap:6px;margin-top:10px}
+.empty{color:var(--ink2);font-size:13px;padding:8px 0}
+.log{font-size:13px}
+.log div{display:flex;gap:10px;padding:5px 0;border-top:1px solid var(--line)}
+.log div:first-child{border-top:0}
+.log time{color:var(--ink2);flex:none;width:44px}
+.dl{font-weight:600}
+.good{color:var(--green)}.bad{color:var(--red)}
+.note{font-size:12px;color:var(--ink2);margin-top:16px}
+.notice{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--accentBg);border:1px solid var(--line);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:90%}
+.toast.show{opacity:1}
+@media (min-width:760px){
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .press{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.toast{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hin">
+    <div class="brand"><b>FlowCast</b><span>Hospital flow command center · simulated data</span></div>
+    <div class="clock" id="clock">12:00</div>
+  </div>
+  <div class="hin" style="margin-top:8px">
+    <div class="ctl">
+      <button id="bPlay" class="sm go">Pause</button>
+      <button class="sm sp" data-ms="800">1×</button>
+      <button class="sm sp on" data-ms="300">3×</button>
+      <button class="sm sp" data-ms="100">8×</button>
+    </div>
+    <div class="ctl">
+      <button id="bSurge" class="sm alert">Skip to surge</button>
+      <button id="bAuto" class="sm">Auto-accept: off</button>
+      <button id="bReset" class="sm">Restart demo</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav>
+    <a href="#s-over">Overview</a><a href="#s-fc">Forecast</a><a href="#s-act">Actions</a><a href="#s-beds">Beds</a><a href="#s-ed">ED queue</a><a href="#s-imp">Impact</a>
+  </nav>
+
+  <div class="notice"><b>Simulated demo.</b> Patients, beds, and staffing come from a scripted simulation that plays out the same way every run: a surge hits at 14:00. <span id="fcNote">The forecast is a rule-based estimate, not trained on real data. Start the Python server to use the trained model.</span></div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="alerts" id="alerts"></div>
+
+  <div class="card" id="s-fc">
+    <h2>Bed demand forecast, next 12 hours</h2>
+    <p class="sub">Predicts occupied beds plus boarders against 90 staffed beds, using the current discharge pipeline and expected arrivals. Arrivals source: <b id="fcSrc">rules</b>.</p>
+    <div class="leg"><span><i class="sw" style="background:var(--accent)"></i>Predicted demand</span><span><i class="sw" style="background:var(--base)"></i>Capacity</span><span><i class="sw" style="background:var(--red);opacity:.35"></i>Shortfall</span></div>
+    <div id="fcChart"></div>
+    <p class="sub" style="margin:10px 0 4px">Expected ED arrivals per hour</p>
+    <div id="arrChart"></div>
+  </div>
+
+  <div class="card" id="s-act">
+    <h2>Recommended actions</h2>
+    <p class="sub">Ranked by expected impact. Each action shows its reason and safety check. A clinician accepts or dismisses.</p>
+    <div id="recs"></div>
+  </div>
+
+  <div class="card" id="s-over">
+    <h2>Department pressure</h2>
+    <p class="sub">Score from 0 to 100 combining occupancy, queues, boarding, and wait times.</p>
+    <div class="press" id="press"></div>
+  </div>
+
+  <div class="card" id="s-beds">
+    <h2>Bed map</h2>
+    <div class="leg"><span><i class="sw" style="border:1.5px solid var(--green)"></i>Free</span><span><i class="sw" style="background:var(--bedOcc)"></i>Occupied</span><span><i class="sw" style="background:var(--amberBg);border:1.5px solid var(--amber)"></i>Fit to leave (✓)</span><span><i class="sw" style="border:1.5px dashed var(--bedLine)"></i>Cleaning</span></div>
+    <div id="beds"></div>
+  </div>
+
+  <div class="two">
+    <div class="card" id="s-ed">
+      <h2>ED queue</h2>
+      <p class="sub" id="edSub"></p>
+      <div id="edTable"></div>
+      <p class="sub" style="margin:12px 0 4px">Boarding: admitted, waiting for a ward bed</p>
+      <div id="boarders"></div>
+    </div>
+    <div class="card" id="s-imp">
+      <h2>Impact: with FlowCast vs without</h2>
+      <p class="sub">A parallel run with identical patients where no actions are taken.</p>
+      <div id="impHead" style="font-weight:500;margin-bottom:8px"></div>
+      <div id="impTable"></div>
+      <p class="sub" style="margin:12px 0 4px">Patients waiting in ED over time</p>
+      <div class="leg"><span><i class="sw" style="background:var(--accent)"></i>With FlowCast</span><span><i class="sw" style="background:var(--base)"></i>Without</span></div>
+      <div id="impChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Activity log</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <p class="note">Decision support only. Every recommendation needs clinician approval, never overrides acuity, and excludes telemetry, isolation, and ESI 1 to 2 patients from outlier placement. All patients and numbers are simulated.</p>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+var TICK=10,SEED=11,TOTAL_BEDS=90,ED_BAYS=15,LOUNGE_CAP=6;
+var SURGE_AT=840,SURGE_MIN=240,SURGE_MUL=2.3;
+var API=(location.protocol==='file:')?'http://localhost:8000':'';
+var backend={on:false,metrics:null,fails:0},modelFc=null,inflight=false;
+var HOURLY=[3,2.5,2.2,2,2,2.3,3,4,5.5,6.5,7,7.5,7.5,7,7,7.5,8,8.5,8.5,8,7,6,5,4];
+var PA=[0,.95,.7,.3,.04,.01];
+var WM={MED:44,SUR:36,CAR:40,ICU:30};
+var WARDS=[
+ {id:'MED',name:'Medical',beds:32,nurses:8,ratio:5,occ:.94},
+ {id:'SUR',name:'Surgical',beds:28,nurses:7,ratio:5,occ:.62},
+ {id:'CAR',name:'Cardiac',beds:20,nurses:6,ratio:4,occ:.9},
+ {id:'ICU',name:'ICU',beds:10,nurses:6,ratio:2,occ:.8}
+];
+var ESI=['','Resuscitation','Emergent','Urgent','Less urgent','Non-urgent'];
+
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pois(r,l){var L=Math.exp(-l),k=0,p=1;do{k++;p*=r()}while(p>L&&k<30);return k-1}
+function clock(t){var m=((t%1440)+1440)%1440,h=Math.floor(m/60),mm=m%60;return(h<10?'0':'')+h+':'+(mm<10?'0':'')+mm}
+function fmt(m){m=Math.round(m);if(m<60)return m+' min';var h=Math.floor(m/60),r=m%60;return h+'h'+(r?' '+r+'m':'')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function newSim(managed){
+  var S={managed:managed,t:720,ar:rng(SEED),nextId:1,surge:0,surgeMul:1,ed:[],beds:{},nurses:{},lounge:[],edNurses:4,ft:false,
+    st:{started:0,waitSum:0,boardMin:0,peakQ:0},waits:[],arrHist:[],hist:[],log:[],hourly:[],hourAcc:0};
+  for(var hi=24;hi>=1;hi--)S.hourly.push(HOURLY[(((Math.floor(S.t/60)-hi)%24)+24)%24]);
+  WARDS.forEach(function(w){
+    S.nurses[w.id]=w.nurses;var arr=[];
+    for(var i=0;i<w.beds;i++){
+      var u=S.ar(),f=S.ar(),d=S.ar(),fi=S.ar(),b={st:'free',p:null,t:0};
+      if(u<w.occ){
+        var p={id:S.nextId++,ward:w.id,esi:3,fitIn:Math.max(20,-Math.log(1-fi)*WM[w.id]*60),dcDelay:90+Math.round(d*15)*10};
+        b.st='occ';b.p=p;
+        if(f<.1){b.st='fit';p.dcAt=S.t+30+Math.round(d*15)*10}
+      }
+      arr.push(b);
+    }
+    S.beds[w.id]=arr;
+  });
+  return S;
+}
+function mkPatient(S){
+  var r=S.ar,u1=r(),u2=r(),u3=r(),u4=r(),u5=r(),u6=r(),u7=r(),u8=r();
+  var esi=u1<.03?1:u1<.15?2:u1<.55?3:u1<.85?4:5;
+  var dur=Math.max(20,Math.round([0,150,130,100,60,35][esi]*(0.6+u2*0.8)/10)*10);
+  var admit=u3<PA[esi],v=u4,ward;
+  if(esi===1)ward=v<.7?'ICU':'CAR';else if(esi===2)ward=v<.15?'ICU':v<.45?'CAR':v<.9?'MED':'SUR';else ward=v<.55?'MED':v<.8?'SUR':'CAR';
+  return{id:S.nextId++,esi:esi,dur:dur,rem:dur,admit:admit,ward:admit?ward:null,
+    tele:ward==='CAR'||(ward==='MED'&&u5<.2),iso:u6<.08,
+    fitIn:Math.max(60,-Math.log(1-u7)*WM[ward]*60),dcDelay:90+Math.round(u8*15)*10,arr:S.t,st:'wait'};
+}
+function wardStats(S,id){var o=0,f=0,fr=0,c=0,b=S.beds[id];b.forEach(function(x){if(x.st==='occ')o++;else if(x.st==='fit')f++;else if(x.st==='free')fr++;else c++});return{occ:o,fit:f,free:fr,clean:c,total:b.length,used:o+f}}
+function freeBed(S,id){var b=S.beds[id];for(var i=0;i<b.length;i++)if(b[i].st==='free')return b[i];return null}
+function edUsed(S){var n=0;S.ed.forEach(function(p){if(p.st==='treat'||p.st==='board')n++});return n}
+function effBays(S){return Math.min(ED_BAYS,S.edNurses*3)}
+function purge(S){S.ed=S.ed.filter(function(p){return p.st!=='gone'})}
+function place(S,p,bed,outlier){bed.st='occ';bed.p=p;p.outlier=!!outlier;p.st='gone'}
+
+function stepSim(S){
+  S.t+=TICK;
+  var h=Math.floor((S.t%1440)/60),mul=S.surge>0?S.surgeMul:1;
+  if(S.surge>0)S.surge-=TICK;
+  var base=HOURLY[h]*TICK/60,n=pois(S.ar,base*mul);
+  for(var i=0;i<n;i++)S.ed.push(mkPatient(S));
+  S.arrHist.push({n:n,e:base});if(S.arrHist.length>6)S.arrHist.shift();
+  S.hourAcc+=n;if(S.t%60===0){S.hourly.push(S.hourAcc);S.hourAcc=0;if(S.hourly.length>48)S.hourly.shift()}
+  S.ed.forEach(function(p){
+    if(p.st==='treat'||p.st==='ft'){p.rem-=TICK;if(p.rem<=0){if(p.admit){p.st='board';p.bs=S.t}else p.st='gone'}}
+  });
+  purge(S);
+  var q=S.ed.filter(function(p){return p.st==='wait'}).sort(function(a,b){return a.esi-b.esi||a.arr-b.arr});
+  var ftUsed=S.ed.filter(function(p){return p.st==='ft'}).length;
+  q.forEach(function(p){
+    var ok=false;
+    if(S.ft&&p.esi>=4&&ftUsed<3){p.st='ft';ftUsed++;ok=true}
+    else if(edUsed(S)<effBays(S)||(p.esi<=2&&edUsed(S)<ED_BAYS)){p.st='treat';ok=true}
+    if(ok){var w=S.t-p.arr;S.st.started++;S.st.waitSum+=w;S.waits.push({t:S.t,w:w})}
+  });
+  S.waits=S.waits.filter(function(x){return x.t>S.t-240});
+  S.ed.filter(function(p){return p.st==='board'}).sort(function(a,b){return a.bs-b.bs}).forEach(function(p){
+    var bed=freeBed(S,p.ward);if(bed)place(S,p,bed,false);
+  });
+  purge(S);
+  WARDS.forEach(function(w){S.beds[w.id].forEach(function(b){
+    if(b.st==='occ'){b.p.fitIn-=TICK;if(b.p.fitIn<=0){b.st='fit';b.p.dcAt=S.t+b.p.dcDelay}}
+    else if(b.st==='fit'){if(S.t>=b.p.dcAt){b.st='clean';b.t=30;b.p=null}}
+    else if(b.st==='clean'){b.t-=TICK;if(b.t<=0)b.st='free'}
+  })});
+  S.lounge=S.lounge.map(function(x){return x-TICK}).filter(function(x){return x>0});
+  var wc=S.ed.filter(function(p){return p.st==='wait'}).length,bc=S.ed.filter(function(p){return p.st==='board'}).length;
+  S.st.boardMin+=bc*TICK;S.st.peakQ=Math.max(S.st.peakQ,wc);
+  S.hist.push({q:wc,b:bc});if(S.hist.length>288)S.hist.shift();
+}
+
+function metrics(S){
+  var wait=S.ed.filter(function(p){return p.st==='wait'}),board=S.ed.filter(function(p){return p.st==='board'});
+  var used=0,tot=0,fit=0;
+  WARDS.forEach(function(w){var s=wardStats(S,w.id);used+=s.used;tot+=s.total;fit+=s.fit});
+  var rw=S.waits.filter(function(x){return x.t>S.t-120}),avg=rw.length?rw.reduce(function(a,x){return a+x.w},0)/rw.length:0;
+  var longest=wait.reduce(function(m,p){return Math.max(m,S.t-p.arr)},0),longB=board.reduce(function(m,p){return Math.max(m,S.t-p.bs)},0);
+  return{wait:wait,board:board,used:used,tot:tot,fit:fit,occ:used/tot,avg:avg,longest:longest,longB:longB,
+    over60:wait.filter(function(p){return S.t-p.arr>60}).length,cum:S.st.started?S.st.waitSum/S.st.started:0};
+}
+
+function forecast(S){
+  var m=metrics(S),sumN=0,sumE=0;
+  S.arrHist.forEach(function(a){sumN+=a.n;sumE+=a.e});
+  var trend=sumE>0?Math.min(2.2,Math.max(.8,sumN/sumE)):1;
+  var useModel=!!modelFc&&Math.abs(Math.floor(S.t/60)-modelFc.hourIdx)<=1;
+  var occNon=0,sched=[];
+  WARDS.forEach(function(w){S.beds[w.id].forEach(function(b){if(b.st==='occ')occNon++;else if(b.st==='fit')sched.push(b.p.dcAt)})});
+  var pending=0;S.ed.forEach(function(p){if(p.st==='wait'||p.st==='treat'||p.st==='ft')pending+=PA[p.esi]});
+  var dem=[],arr=[],cumA=0,gapMax=-999,gapIdx=0;
+  for(var k=0;k<=12;k++){
+    var hh=Math.floor(((S.t+k*60)%1440)/60),mm=1+(trend-1)*Math.max(0,1-k/4),e=(useModel&&k>0&&modelFc.arr[k]!=null)?modelFc.arr[k]:HOURLY[hh]*mm;
+    if(k>0){cumA+=e*.25;arr.push(e)}
+    var tt=S.t+k*60,sch=sched.filter(function(d){return d<=tt}).length,nf=Math.max(0,k-2)*occNon/42;
+    var d=Math.round(m.used+m.board.length+(k>0?pending:0)+cumA-sch-nf);
+    dem.push(d);
+    if(d-TOTAL_BEDS>gapMax){gapMax=d-TOTAL_BEDS;gapIdx=k}
+  }
+  return{dem:dem,arr:arr,gapMax:gapMax,gapIdx:gapIdx,trend:trend,src:useModel?'model':'rules'};
+}
+
+function recs(S){
+  var out=[],m=metrics(S),boardBy={},fitAll=[];
+  WARDS.forEach(function(w){
+    boardBy[w.id]=m.board.filter(function(p){return p.ward===w.id});
+    S.beds[w.id].forEach(function(b){if(b.st==='fit'&&b.p.dcAt-S.t>40)fitAll.push({w:w.id,b:b})});
+  });
+  WARDS.forEach(function(w){
+    var fits=fitAll.filter(function(x){return x.w===w.id}),ws=wardStats(S,w.id),bd=boardBy[w.id].length,n=fits.length;
+    if(n>=2&&(bd>0||ws.used/ws.total>=.85)){
+      out.push({id:'dr-'+w.id,prio:60+n*4+bd*10,title:'Start discharge rounds on '+w.name,
+        why:n+' patients are medically fit but still waiting on pharmacy, transport, or paperwork. '+(bd?bd+' ED patient'+(bd>1?'s are':' is')+' boarding for this ward.':'The ward is at '+Math.round(ws.used/ws.total*100)+'% occupancy.'),
+        impact:'Frees '+n+' beds in about 50 min (20 min to discharge, 30 min to clean).',
+        safety:'Only patients already marked medically fit. The nurse completes the discharge checklist.',
+        apply:function(){fits.forEach(function(x){x.b.p.dcAt=S.t+20})}});
+    }
+  });
+  var space=LOUNGE_CAP-S.lounge.length;
+  if(space>0&&fitAll.length>=1&&m.board.length>0){
+    var pick=fitAll.slice().sort(function(a,b){return boardBy[b.w].length-boardBy[a.w].length}).slice(0,space);
+    out.push({id:'lounge',prio:75+pick.length*3,title:'Move '+pick.length+' fit patient'+(pick.length>1?'s':'')+' to the discharge lounge',
+      why:'They only need transport or paperwork. Moving them now opens beds for '+m.board.length+' boarding ED patient'+(m.board.length>1?'s':'')+'.',
+      impact:pick.length+' bed'+(pick.length>1?'s':'')+' ready after a 30 min clean.',
+      safety:'Stable and walking, no IV or pending tests. Lounge holds '+LOUNGE_CAP+' (using '+S.lounge.length+').',
+      apply:function(){pick.forEach(function(x){x.b.st='clean';x.b.t=30;x.b.p=null;S.lounge.push(60)})}});
+  }
+  var medOk=boardBy.MED.filter(function(p){return !p.tele&&!p.iso&&p.esi>=3}),med=wardStats(S,'MED'),sur=wardStats(S,'SUR');
+  if(med.free===0&&medOk.length>0&&sur.free>=3){
+    var cap=S.nurses.SUR*WARDS[1].ratio-sur.used,take=Math.min(medOk.length,sur.free-2,3,cap);
+    if(take>=1){
+      var who=medOk.slice(0,take);
+      out.push({id:'outlier',prio:70+take*5,title:'Place '+take+' stable medical patient'+(take>1?'s':'')+' in Surgical',
+        why:'Medical is full and '+boardBy.MED.length+' patient'+(boardBy.MED.length>1?'s are':' is')+' boarding for it. Surgical is at '+Math.round(sur.used/sur.total*100)+'% occupancy.',
+        impact:'Clears '+take+' ED bay'+(take>1?'s':'')+' now instead of waiting for a Medical discharge.',
+        safety:'No telemetry, no isolation, ESI 3 or lower acuity. Medical team reviews daily. Surgical keeps 2 beds free.',
+        apply:function(){who.forEach(function(p){var bed=freeBed(S,'SUR');if(bed)place(S,p,bed,true)});purge(S)}});
+    }
+  }
+  var qn=m.wait.length;
+  if(qn>=5&&S.edNurses*3<ED_BAYS){
+    var best=null;
+    WARDS.slice(0,3).forEach(function(w){var ws=wardStats(S,w.id),sp=S.nurses[w.id]-Math.ceil(ws.used/w.ratio);if(sp>=2&&(!best||sp>best.sp))best={w:w,sp:sp}});
+    if(best)out.push({id:'staff',prio:55+qn*3,title:'Move 1 nurse from '+best.w.name+' to the ED',
+      why:'ED has '+qn+' patients waiting and '+effBays(S)+' staffed bays. '+best.w.name+' has '+best.sp+' nurses above its ratio.',
+      impact:'Adds 3 treatment bays, which should shorten the queue within the hour.',
+      safety:best.w.name+' stays within '+best.w.ratio+':1 after the move ('+(best.sp-1)+' spare).',
+      apply:function(){S.nurses[best.w.id]--;S.edNurses++}});
+  }
+  var low=m.wait.filter(function(p){return p.esi>=4}).length;
+  if(!S.ft&&low>=4)out.push({id:'ft',prio:50+low*3,title:'Open fast-track for ESI 4 and 5',
+    why:low+' low-acuity patients are queued behind sicker cases and wait longest.',
+    impact:'Takes '+low+' patients out of the main queue. 3 fast-track lanes run in parallel.',
+    safety:'Re-triage on any change in vital signs. Uses the existing nurse practitioner rooms.',
+    apply:function(){S.ft=true}});
+  out.sort(function(a,b){return b.prio-a.prio});
+  return out;
+}
+
+var F,B,timer=null,ms=300,auto=false,running=true,pressing=false,dismissed={},surgeDone=false;
+function $(id){return document.getElementById(id)}
+function toast(t){var e=$('toast');e.textContent=t;e.className='toast show';clearTimeout(toast.h);toast.h=setTimeout(function(){e.className='toast'},2400)}
+
+function accept(id,isAuto){
+  var r=recs(F).filter(function(x){return x.id===id})[0];
+  if(!r){if(!isAuto)toast('That action is no longer applicable.');return false}
+  r.apply();purge(F);
+  F.log.unshift({t:F.t,txt:r.title+(isAuto?' (auto)':''),k:'act'});
+  if(!isAuto)toast('Accepted: '+r.title);
+  return true;
+}
+function level(s){return s>=75?['Critical','red']:s>=55?['Elevated','amber']:['Normal','green']}
+
+function lineSvg(series,styles,H,maxV,xl){
+  var W=360,L=26,R=6,T=6,Bm=18,cw=W-L-R,ch=H-T-Bm,n=series[0].length;
+  if(n<2)return'<div class="empty">Collecting data…</div>';
+  var mx=Math.max(maxV,5);series.forEach(function(s){s.forEach(function(v){if(v>mx)mx=v})});mx=Math.ceil(mx/5)*5;
+  var o='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Line chart of ED queue length over time">';
+  [0,.5,1].forEach(function(f){var y=T+ch*(1-f);o+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--line)"/><text x="'+(L-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:var(--ink2)">'+Math.round(mx*f)+'</text>'});
+  series.forEach(function(s,i){
+    var d=s.map(function(v,j){return(j?'L':'M')+(L+cw*j/(n-1)).toFixed(1)+' '+(T+ch*(1-v/mx)).toFixed(1)}).join(' ');
+    o+='<path d="'+d+'" fill="none" stroke-width="2" stroke-linejoin="round" style="'+styles[i]+'"/>';
+  });
+  o+='<text x="'+L+'" y="'+(H-4)+'" font-size="10" style="fill:var(--ink2)">'+xl[0]+'</text><text x="'+(W-R)+'" y="'+(H-4)+'" font-size="10" text-anchor="end" style="fill:var(--ink2)">'+xl[1]+'</text></svg>';
+  return o;
+}
+
+function fcSvg(fc,S){
+  var W=360,H=180,L=30,R=8,T=8,Bm=22,cw=W-L-R,ch=H-T-Bm,n=fc.dem.length;
+  var lo=Math.floor((Math.min.apply(null,fc.dem.concat([TOTAL_BEDS]))-6)/10)*10,hi=Math.ceil((Math.max.apply(null,fc.dem.concat([TOTAL_BEDS]))+4)/10)*10;
+  function X(i){return L+cw*i/(n-1)}function Y(v){return T+ch*(1-(v-lo)/(hi-lo))}
+  var o='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Forecast of bed demand against 90 beds over 12 hours. Peak gap '+fc.gapMax+' beds.">';
+  [lo,(lo+hi)/2,hi].forEach(function(v){o+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:var(--line)"/><text x="'+(L-4)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="10" style="fill:var(--ink2)">'+Math.round(v)+'</text>'});
+  var capY=Y(TOTAL_BEDS),top=[],bot=[];
+  fc.dem.forEach(function(v,i){top.push(X(i).toFixed(1)+','+Math.min(Y(v),capY).toFixed(1))});
+  for(var i=n-1;i>=0;i--)bot.push(X(i).toFixed(1)+','+capY.toFixed(1));
+  o+='<polygon points="'+top.concat(bot).join(' ')+'" style="fill:var(--red);opacity:.3"/>';
+  o+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+capY+'" y2="'+capY+'" stroke-width="2" stroke-dasharray="5 4" style="stroke:var(--base)"/>';
+  o+='<path d="'+fc.dem.map(function(v,i){return(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)}).join(' ')+'" fill="none" stroke-width="2.5" stroke-linejoin="round" style="stroke:var(--accent)"/>';
+  if(fc.gapMax>0)o+='<circle cx="'+X(fc.gapIdx)+'" cy="'+Y(fc.dem[fc.gapIdx])+'" r="4.5" style="fill:var(--red);stroke:var(--card);stroke-width:2"/><text x="'+Math.min(W-R-4,Math.max(L+4,X(fc.gapIdx)))+'" y="'+(Y(fc.dem[fc.gapIdx])-9)+'" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--red)">+'+fc.gapMax+' beds</text>';
+  [0,3,6,9,12].forEach(function(i){o+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="'+(i===0?'start':i===12?'end':'middle')+'" font-size="10" style="fill:var(--ink2)">'+(i===0?'Now':clock(S.t+i*60))+'</text>'});
+  return o+'</svg>';
+}
+function arrSvg(fc,S){
+  var W=360,H=64,L=30,R=8,bw=(W-L-R)/12,mx=Math.max.apply(null,fc.arr),o='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Expected ED arrivals per hour, peak '+mx.toFixed(1)+'">';
+  fc.arr.forEach(function(v,i){var h=(H-24)*v/(mx||1),pk=v===mx;o+='<rect x="'+(L+i*bw+2)+'" y="'+(H-16-h)+'" width="'+(bw-4)+'" height="'+h+'" rx="2" style="fill:var(--accent);opacity:'+(pk?1:.45)+'"/>';if(pk)o+='<text x="'+(L+i*bw+bw/2)+'" y="'+(H-19-h)+'" text-anchor="middle" font-size="10" font-weight="600" style="fill:var(--ink)">'+v.toFixed(1)+'</text>'});
+  [0,3,6,9].forEach(function(i){o+='<text x="'+(L+i*bw+2)+'" y="'+(H-3)+'" font-size="10" style="fill:var(--ink2)">'+clock(S.t+(i+1)*60)+'</text>'});
+  return o+'</svg>';
+}
+
+function edWait(S,m,L){
+  var used=edUsed(S),eff=effBays(S),free=Math.max(0,eff-used),ahead;
+  if(S.ft&&L>=4){ahead=m.wait.filter(function(p){return p.esi>=4}).length;return ahead<3?0:Math.round((ahead-2)*45/3)}
+  ahead=m.wait.filter(function(p){return p.esi<=L}).length;
+  if(ahead<free)return 0;
+  return Math.round((ahead-free+1)*85/Math.max(1,eff-m.board.length));
+}
+
+function render(){
+  var m=metrics(F),fc=forecast(F);
+  $('clock').textContent=clock(F.t);
+  var edScore=Math.min(100,Math.round(100*(.35*Math.min(1,m.wait.length/10)+.3*Math.min(1,m.board.length/8)+.35*Math.min(1,m.avg/120))));
+  $('kpis').innerHTML=
+   kpi('Bed occupancy',Math.round(m.occ*100)+'%',m.used+' of '+m.tot+' beds · '+m.fit+' fit to leave')+
+   kpi('ED waiting',m.wait.length,m.wait.length?'longest '+fmt(m.longest):'no one waiting')+
+   kpi('Avg door-to-bay',Math.round(m.avg)+' min','last 2 hours')+
+   kpi('ED boarding',m.board.length,m.board.length?'longest '+fmt(m.longB):'none');
+  var al=[];
+  if(fc.gapMax>0)al.push({k:fc.gapMax>=6?'red':'amber',i:'▲',t:'Predicted bed shortfall of '+fc.gapMax+' by '+clock(F.t+fc.gapIdx*60)});
+  if(m.longB>=120)al.push({k:'red',i:'▲',t:m.board.length+' patients boarding in ED, longest '+fmt(m.longB)});
+  else if(m.board.length>=3)al.push({k:'amber',i:'!',t:m.board.length+' patients boarding in ED for a ward bed'});
+  if(m.wait.length>=8)al.push({k:m.wait.length>=14?'red':'amber',i:m.wait.length>=14?'▲':'!',t:'ED queue at '+m.wait.length+', longest wait '+fmt(m.longest)});
+  if(m.fit>=6)al.push({k:'amber',i:'!',t:m.fit+' patients are medically fit but still occupying beds'});
+  if(F.surge>0)al.push({k:'amber',i:'!',t:'Arrival surge active, '+fmt(F.surge)+' remaining'});
+  if(!al.length)al.push({k:'green',i:'✓',t:'No active bottlenecks'});
+  $('alerts').innerHTML=al.map(function(a){return'<div class="al '+a.k+'"><i>'+a.i+'</i><span>'+esc(a.t)+'</span></div>'}).join('');
+  $('fcSrc').textContent=fc.src==='model'?'trained model':'rule-based estimate';
+  $('fcChart').innerHTML=fcSvg(fc,F);$('arrChart').innerHTML=arrSvg(fc,F);
+
+  var pc=[];
+  var el=level(edScore);pc.push(pcard('Emergency dept',edScore,el,m.wait.length+' waiting · '+m.board.length+' boarding'));
+  WARDS.forEach(function(w){
+    var ws=wardStats(F,w.id),bd=m.board.filter(function(p){return p.ward===w.id}).length,sc=Math.min(100,Math.round(ws.used/ws.total*70+bd*12));
+    pc.push(pcard(w.name,sc,level(sc),Math.round(ws.used/ws.total*100)+'% full · '+ws.free+' free'+(bd?' · '+bd+' waiting':'')));
+  });
+  var lc=Math.round(F.lounge.length/LOUNGE_CAP*100);
+  pc.push(pcard('Discharge lounge',lc,level(lc),F.lounge.length+' of '+LOUNGE_CAP+' seats used'));
+  $('press').innerHTML=pc.join('');
+
+  var bh='';
+  WARDS.forEach(function(w){
+    var ws=wardStats(F,w.id),bd=m.board.filter(function(p){return p.ward===w.id}).length,sq='';
+    F.beds[w.id].forEach(function(b){sq+='<span class="bed '+b.st+(b.p&&b.p.outlier?' out':'')+'">'+(b.st==='fit'?'✓':'')+'</span>'});
+    bh+='<div class="ward"><div class="wh"><b>'+w.name+'</b><span>'+ws.used+'/'+ws.total+' used · '+ws.free+' free · '+F.nurses[w.id]+' nurses'+(bd?' · <b class="bad">'+bd+' ED patients waiting</b>':'')+'</span></div><div class="beds">'+sq+'</div></div>';
+  });
+  $('beds').innerHTML=bh;
+
+  $('edSub').textContent=effBays(F)+' staffed bays of '+ED_BAYS+' · '+edUsed(F)+' in use'+(F.ft?' · fast-track open':'');
+  var t='<table><thead><tr><th>Acuity</th><th class="r">Waiting</th><th class="r">Longest</th><th class="r">Predicted wait</th></tr></thead><tbody>';
+  for(var l=1;l<=5;l++){
+    var ws2=m.wait.filter(function(p){return p.esi===l}),lg=ws2.reduce(function(a,p){return Math.max(a,F.t-p.arr)},0);
+    t+='<tr><td>ESI '+l+' <span style="color:var(--ink2)">'+ESI[l]+'</span></td><td class="r">'+ws2.length+'</td><td class="r">'+(ws2.length?fmt(lg):'–')+'</td><td class="r dl">'+(l===1?'immediate':fmt(edWait(F,m,l)))+'</td></tr>';
+  }
+  $('edTable').innerHTML=t+'</tbody></table>';
+  var bo=m.board.slice().sort(function(a,b){return a.bs-b.bs}).slice(0,5);
+  $('boarders').innerHTML=bo.length?'<table><tbody>'+bo.map(function(p){
+    return'<tr><td>#'+p.id+' · ESI '+p.esi+' · needs '+p.ward+(p.tele?' · telemetry':'')+(p.iso?' · isolation':'')+'</td><td class="r dl '+((F.t-p.bs)>=120?'bad':'')+'">'+fmt(F.t-p.bs)+'</td></tr>'}).join('')+'</tbody></table>':'<div class="empty">No one is boarding.</div>';
+
+  if(!pressing){
+    var rs=recs(F).filter(function(r){return !(dismissed[r.id]>F.t)}).slice(0,4);
+    $('recs').innerHTML=rs.length?rs.map(function(r){
+      return'<div class="rec"><b>'+esc(r.title)+'</b><p>'+esc(r.why)+'</p><p class="im">Expected impact: '+esc(r.impact)+'</p><p>Safety check: '+esc(r.safety)+'</p><div class="btns"><button class="go sm" data-a="'+r.id+'">Accept</button><button class="sm" data-d="'+r.id+'">Dismiss</button></div></div>'}).join(''):'<div class="empty">No actions needed right now. The scripted surge starts at 14:00, or press Skip to surge.</div>';
+  }
+
+  var B1=metrics(B);
+  var hasData=F.st.started>20;
+  var dpct=B.st.waitSum>0&&B.st.started?(m.cum-B1.cum)/B1.cum*100:0;
+  $('impHead').innerHTML=hasData&&Math.abs(dpct)>=1?(dpct<0?'<span class="good">Average wait is '+Math.abs(Math.round(dpct))+'% lower with FlowCast actions.</span>':'<span class="bad">Average wait is '+Math.round(dpct)+'% higher than baseline.</span>'):'<span style="color:var(--ink2)">Accept recommendations to see the effect.</span>';
+  $('impTable').innerHTML='<table><thead><tr><th></th><th class="r">With</th><th class="r">Without</th><th class="r">Change</th></tr></thead><tbody>'+
+    irow('Avg door-to-bay (min)',m.cum,B1.cum)+irow('Peak ED queue',F.st.peakQ,B.st.peakQ)+irow('Boarding hours',F.st.boardMin/60,B.st.boardMin/60)+irow('Waiting over 60 min now',m.over60,B1.over60)+'</tbody></table>';
+  var N=Math.min(F.hist.length,B.hist.length),fq=F.hist.slice(-N).map(function(x){return x.q}),bq=B.hist.slice(-N).map(function(x){return x.q});
+  var mxq=Math.max(10,F.st.peakQ,B.st.peakQ);
+  $('impChart').innerHTML=lineSvg([bq,fq],['stroke:var(--base)','stroke:var(--accent)'],120,mxq,[clock(F.t-N*TICK),clock(F.t)]);
+
+  $('log').innerHTML=F.log.length?F.log.slice(0,8).map(function(e){return'<div><time>'+clock(e.t)+'</time><span>'+esc(e.txt)+'</span></div>'}).join(''):'<div class="empty">No actions yet.</div>';
+}
+function kpi(l,v,s){return'<div class="kpi"><p class="kl">'+l+'</p><p class="kv">'+v+'</p><p class="ks">'+esc(s)+'</p></div>'}
+function pcard(n,sc,lv,s){var c='var(--'+lv[1]+')';return'<div class="pc"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="n">'+n+'</span><span class="pill '+lv[1]+'">'+lv[0]+' '+sc+'</span></div><div class="bar"><div style="width:'+sc+'%;background:'+c+'"></div></div><div class="s">'+esc(s)+'</div></div>'}
+function irow(l,a,b){
+  var d=b>0?(a-b)/b*100:0,cls=Math.abs(d)<1?'':d<0?'good':'bad',txt=Math.abs(d)<1?'–':(d<0?'−':'+')+Math.abs(Math.round(d))+'%';
+  return'<tr><td>'+l+'</td><td class="r">'+Math.round(a*10)/10+'</td><td class="r">'+Math.round(b*10)/10+'</td><td class="r dl '+cls+'">'+txt+'</td></tr>';
+}
+
+function fetchJson(u,t){var c=new AbortController(),id=setTimeout(function(){c.abort()},t);return fetch(u,{signal:c.signal}).then(function(r){clearTimeout(id);if(!r.ok)throw new Error('http');return r.json()})}
+function maybeFetchForecast(){
+  if(!backend.on||inflight)return;
+  var hi=Math.floor(F.t/60);
+  if(modelFc&&modelFc.hourIdx===hi)return;
+  var o=hi-1,body={weekday:(1+Math.floor(o/24))%7,hour:((o%24)+24)%24,month:10,recent:F.hourly.slice(-24),horizons:13};
+  inflight=true;
+  fetch(API+'/api/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){if(!r.ok)throw new Error('http');return r.json()})
+    .then(function(j){modelFc={hourIdx:hi,arr:j.arrivals};backend.fails=0})
+    .catch(function(){backend.fails++;if(backend.fails>3){backend.on=false;setNote()}})
+    .then(function(){inflight=false});
+}
+function setNote(){
+  var m=backend.metrics,e=$('fcNote');
+  if(!backend.on||!m){e.textContent='The forecast is a rule-based estimate, not trained on real data. Start the Python server to use the trained model.';return}
+  if(m.synthetic){e.textContent='The forecast is a trained model, but it was trained on made-up data because the real dataset was not found, so its accuracy means nothing yet.';return}
+  e.textContent='The arrivals forecast is a gradient boosting model trained on real hourly ED data ('+m.source+'). On '+m.test_hours.toLocaleString()+' held-out hours its average error is '+m.mae_model+' patients per hour, versus '+m.mae_typical_hour+' for guessing the typical hour ('+m.improvement_pct+'% better).';
+}
+function startSurge(){
+  [F,B].forEach(function(S){S.surge=SURGE_MIN;S.surgeMul=SURGE_MUL});
+  F.log.unshift({t:F.t+TICK,txt:'Scripted surge: arrivals ×'+SURGE_MUL+' for '+(SURGE_MIN/60)+' hours',k:'ev'});
+  surgeDone=true;
+}
+function tick(){
+  if(!surgeDone&&F.t>=SURGE_AT-TICK)startSurge();
+  if(auto){for(var i=0;i<2;i++){var rs=recs(F);if(!rs.length||!accept(rs[0].id,true))break}}
+  stepSim(F);stepSim(B);maybeFetchForecast();render();
+}
+function start(){clearInterval(timer);if(running)timer=setInterval(tick,ms)}
+function init(){modelFc=null;F=newSim(true);B=newSim(false);dismissed={};surgeDone=false;render()}
+
+$('bPlay').addEventListener('click',function(){running=!running;this.textContent=running?'Pause':'Play';start()});
+Array.prototype.forEach.call(document.querySelectorAll('.sp'),function(b){b.addEventListener('click',function(){
+  ms=Number(b.getAttribute('data-ms'));Array.prototype.forEach.call(document.querySelectorAll('.sp'),function(x){x.className='sm sp'});b.className='sm sp on';start()})});
+$('bSurge').addEventListener('click',function(){
+  var target=SURGE_AT-60;
+  if(F.t>=target){toast('Already at the surge');return}
+  while(F.t<target){stepSim(F);stepSim(B)}
+  render();toast('Skipped to '+clock(F.t));
+});
+$('bAuto').addEventListener('click',function(){auto=!auto;this.textContent='Auto-accept: '+(auto?'on':'off');this.className='sm'+(auto?' on':'')});
+$('bReset').addEventListener('click',function(){init();toast('Demo restarted')});
+var rc=$('recs');
+rc.addEventListener('pointerdown',function(){pressing=true});
+['pointerup','pointercancel'].forEach(function(e){rc.addEventListener(e,function(){setTimeout(function(){pressing=false},500)})});
+rc.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  var a=b.getAttribute('data-a'),d=b.getAttribute('data-d');
+  pressing=false;
+  if(a)accept(a,false);
+  if(d){dismissed[d]=F.t+60;toast('Dismissed for 1 hour')}
+  render();
+});
+function boot(){
+  fetchJson(API+'/api/profile?weekday=1',2000).then(function(p){
+    if(p&&p.hourly&&p.hourly.length===24){HOURLY=p.hourly;backend.on=true}
+    return fetchJson(API+'/api/metrics',2000);
+  }).then(function(m){backend.metrics=m}).catch(function(){}).then(function(){setNote();init();start()});
+}
+boot();
+})();
+</script>
+</body>
+</html>
